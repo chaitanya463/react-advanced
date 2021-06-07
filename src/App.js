@@ -1,44 +1,49 @@
-import {useEffect} from 'react';
-import {useSelector} from 'react-redux';
+import {useEffect, Fragment} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 
 import Cart from './components/Cart/Cart';
 import Layout from './components/Layout/Layout';
 import Products from './components/Shop/Products';
+import Notification from  './components/UI/Notification';
+import {fetchCartData, sendCardData} from './store/cart-actions';
+
+let isInitial = true;
 
 function App() {
 
+  const dispatch = useDispatch();
+
   const isCartVisible = useSelector((state) => state.ui.cartIsVisible);
-  // const fetchItems = async () => {
-  //   try {
-  //     const result = await fetch('https://react-http-dd09a-default-rtdb.firebaseio.com/Products.json');
+  const cart = useSelector((state) => state.cart);
+  const notification = useSelector((state) => state.ui.notification);
 
-  //     if (!result.ok) {
-  //       throw new Error("Something went wrong!");
-  //     }
-  //     const data = await result.json();
-  //     const transformedData = []
-  //     for (let i in data) {
-  //       transformedData.push({
-  //         title: data[i].title,
-  //         price: data[i].price,
-  //         description: data[i].description
-  //       })
-  //     }
-  //   } catch (error) {
+  useEffect(() => {
+    dispatch(fetchCartData());
+  }, [dispatch])
 
-  //   }
-  // }
+  useEffect(() => {
+    if (isInitial) {
+      isInitial = false;
+      return;
+    }
 
-  // useEffect(() => {
-  //   fetchItems();
-  // }, []);
+    if (cart.isChanged) {
+      dispatch(sendCardData(cart));
+    }
+    
+  }, [cart, dispatch]);
 
 
   return (
-    <Layout>
-      {isCartVisible && <Cart />}
-      <Products />
-    </Layout>
+    <Fragment>
+      {notification && <Notification status={notification.status} title={notification.title} message={notification.message}/>}
+      <Layout>
+        {isCartVisible && <Cart />}
+        <Products />
+      </Layout>
+
+    </Fragment>
+    
   );
 }
 
